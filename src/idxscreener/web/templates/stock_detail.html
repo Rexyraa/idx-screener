@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% set active = "screener" %}
+{% block title %}{{ stock.ticker }} — Analisis Kuantitatif IDX{% endblock %}
+{% block content %}
+<div
+    style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2rem;flex-wrap:wrap;gap:1rem">
+    <div>
+        <div style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.4rem">
+            <h1 style="font-size:2.4rem;font-weight:800;letter-spacing:-0.03em;color:#FFFFFF;margin:0">{{ stock.ticker
+                }}</h1>
+            <span class="badge badge-high" style="font-size:0.85rem">Papan {{ stock.board|capitalize }}</span>
+        </div>
+        <p class="muted" style="font-size:1rem">{{ stock.name }} · <strong style="color:var(--text)">{{ stock.sector
+                }}</strong></p>
+    </div>
+    <div style="display:flex;gap:0.75rem;align-items:center">
+        <a href="/screener" class="btn btn-secondary btn-sm">← Kembali ke Screener</a>
+        <button class="btn {{ 'btn-danger' if in_watchlist else 'btn-primary' }} btn-sm" id="btn-watchlist"
+            data-active="{{ 'true' if in_watchlist else 'false' }}" data-ticker="{{ stock.ticker }}"
+            onclick="toggleWatchlist(this.dataset.ticker)" {% if demo_readonly %}disabled title="Demo publik hanya-baca"
+            {% endif %}>
+            {{ '✓ Hapus dari Watchlist' if in_watchlist else '+ Tambah ke Watchlist' }}
+        </button>
+    </div>
+</div>
+
+<div class="grid grid-2">
+    <div class="card">
+        <div class="card-title" style="margin-bottom:1rem">Riwayat Harga Penutupan Riil (Rp)</div>
+        <canvas id="price-chart" role="img" aria-label="Riwayat harga penutupan Yahoo Finance">Harga terakhir tersedia
+            pada tabel metrik.</canvas>
+        {% if not stock.prices %}
+        <p class="muted center" style="padding:2rem">Data harga belum tersedia. Jalankan screening untuk mengambil data.
+        </p>
+        {% endif %}
+    </div>
+
+    <div class="card">
+        <div class="card-title" style="margin-bottom:1rem">Metrik Harga Riil · Bukan CAQS</div>
+        <p class="small muted">Tanggal pasar: {{ stock.features.get('data_date') or 'belum tersedia' }}.
+            Return memakai harga tersesuaikan; volatilitas 60 sesi dianualisasi √252.</p>
+        <table>
+            {% for key, label, unit in [
+            ('price', 'Harga Penutupan', 'Rp'),
+            ('return_1m_pct', 'Return 1 Bulan (21 Sesi)', '%'),
+            ('return_3m_pct', 'Return 3 Bulan (60 Sesi)', '%'),
+            ('volatility_pct', 'Volatilitas Tahunan (60 Sesi)', '%'),
+            ('avg_value_20_idr', 'Rata-rata Nilai Transaksi 20 Sesi', 'Rp'),
+            ('last_volume', 'Volume Sesi Terakhir', 'saham')
+            ] %}
+            {% set value = stock.features.get(key) %}
+            <tr>
+                <th scope="row">{{ label }}</th>
+                <td class="num">{{ value|round(2) ~ ' ' ~ unit if value is not none else 'tidak tersedia' }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">Batas Data</div>
+    <p class="muted">Fundamental (PER, PBV, ROE, DER, margin laba) tidak diambil / not fetched.
+        CAQS, Sharpe, Sortino, drawdown, dan indikator teknikal tambahan tidak dihitung pada snapshot ini.</p>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    drawPriceChart({{ stock.prices | tojson }});
+</script>
+{% endblock %}

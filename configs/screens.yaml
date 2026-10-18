@@ -1,0 +1,15 @@
+screens:
+  - name: quality_value_idx
+    universe: idx80
+    gates:
+      min_adv_idr: 1000000000
+      min_listing_days: 250
+      exclude_status: [suspended, special_monitoring]
+      min_data_confidence: 0.6
+    filters:
+      - {metric: pbv, op: "<", value: 2.0}
+      - {metric: roe, op: ">", value: 12}
+      - {metric: der, op: "<", value: 1.5, sectors_except: [financials]}
+      - {metric: rsi14, op: between, value: [35, 70]}
+    rank_by: caqs
+    top_n: 15

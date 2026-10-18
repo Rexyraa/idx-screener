@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+{% set active = "dashboard" %}
+{% block title %}Dashboard — IDX Screener Quant Engine{% endblock %}
+{% block content %}
+<section class="hero">
+    <div>
+        <div class="hero-pill">
+            <span class="glow-dot"></span>
+            Snapshot Harga Riil · Yahoo Finance
+        </div>
+        <h1 class="hero-title">
+            Saring lebih presisi.
+            <span class="accent-text">Peluang lebih tajam.</span>
+        </h1>
+        <p class="hero-subtitle">
+            Saring saham BEI berdasarkan ranking momentum return tersesuaikan 21 dan 60 sesi,
+            dengan filter tanggal pasar, volume, dan likuiditas. Bukan skor CAQS.
+        </p>
+        <div class="hero-actions">
+            <button class="btn btn-primary" id="btn-run-screening" onclick="startScreening()" {% if demo_readonly
+                %}disabled title="Demo publik hanya-baca" {% endif %}>
+                Jalankan Screening ⚡
+            </button>
+            <a href="/screener" class="btn btn-secondary">
+                Buka Screener Tabel →
+            </a>
+        </div>
+        <div class="hero-checks">
+            <span>Universe snapshot: {{ snapshot.get('universe_count', '—') }} saham</span>
+            <span>Momentum percentile · bukan CAQS</span>
+            <span>Harga tanpa fallback sintetis</span>
+        </div>
+    </div>
+
+    <div class="window-card">
+        <div class="window-badge-float">
+            <span class="glow-dot"></span>
+            Snapshot · {{ snapshot.get('valid_count', '—') }} data valid
+        </div>
+        <div class="window-header">
+            <span class="window-dot dot-red"></span>
+            <span class="window-dot dot-yellow"></span>
+            <span class="window-dot dot-green"></span>
+            <span class="window-title">pipeline_idx_screener.py</span>
+        </div>
+        <div class="window-body">
+            <div class="code-line">
+                <span class="line-num">01</span>
+                <span class="line-code"><span class="hl-blue">source</span> = Yahoo Finance</span>
+            </div>
+            <div class="code-line">
+                <span class="line-num">02</span>
+                <span class="line-code">universe = <span class="hl-green">{{ snapshot.get('universe_count', '—')
+                        }}</span></span>
+            </div>
+            <div class="code-line">
+                <span class="line-num">03</span>
+                <span class="line-code">returns = [<span class="hl-orange">21 sessions, 60 sessions</span>]</span>
+            </div>
+            <div class="code-line">
+                <span class="line-num">04</span>
+                <span class="line-code"><span class="hl-green">market_date</span>: {{ snapshot.get('latest_data_date')
+                    or '—' }}<span class="hl-cursor"></span></span>
+            </div>
+        </div>
+        <div class="window-footer-card">
+            <div>
+                <span
+                    style="color:var(--text-muted);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.05em">Model
+                    Status</span>
+                <div style="font-weight:700;color:#FFFFFF;margin-top:2px">Momentum percentile</div>
+            </div>
+            <span class="badge badge-na">{{ snapshot.status }}</span>
+        </div>
+    </div>
+</section>
+
+<div class="disclaimer">
+    <span>⚠</span>
+    <span><strong>Penafian Edukasi:</strong> Skor adalah ranking kuantitatif heuristik. Bukan nasihat investasi dan
+        bukan jaminan hasil. Seluruh keputusan transaksi berada di tangan pengguna.</span>
+</div>
+
+<div class="grid grid-4" style="margin-bottom:2rem">
+    <div class="stat-card">
+        <div class="stat-label">Status Snapshot</div>
+        <div class="stat-val" style="color:var(--primary);text-transform:capitalize">{{ pipeline.status }}</div>
+        <div class="stat-sub">Tanggal pasar: {{ snapshot.get('latest_data_date') or '—' }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Universe BEI</div>
+        <div class="stat-val">{{ snapshot.get('universe_count', '—') }}</div>
+        <div class="stat-sub">Universe pada snapshot terakhir</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Data Valid / Gagal</div>
+        <div class="stat-val">{{ snapshot.get('valid_count', '—') }} / {{ snapshot.get('failed_count', '—') }}</div>
+        <div class="stat-sub">Hasil validasi harga</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Lolos Filter Momentum</div>
+        <div class="stat-val" style="color:var(--primary)">{{ snapshot.get('eligible_count', '—') }}</div>
+        <div class="stat-sub">Diambil: {{ snapshot.get('fetched_at') or '—' }}</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header-flex">
+        <div>
+            <div class="card-title">10 Persentil Momentum Tertinggi</div>
+            <p class="small muted" style="margin-top:2px">Ranking relatif saham lolos filter, bukan rekomendasi
+                investasi
+            </p>
+        </div>
+        <a href="/screener" class="btn btn-secondary btn-sm">Lihat Semua Hasil →</a>
+    </div>
+
+    <div id="run-progress" style="display:none;margin-bottom:1.25rem">
+        <div class="progress-bar">
+            <div style="width:0%"></div>
+        </div>
+        <p class="small muted" id="run-status" role="status" style="margin-top:0.4rem">running…</p>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Kode</th>
+                <th>Nama Emiten</th>
+                <th>Sektor</th>
+                <th class="num">Harga (Rp)</th>
+                <th class="num">Persentil Momentum</th>
+                <th class="num">Return 1 Bulan</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in results[:10] %}
+            <tr>
+                <td>
+                    <a href="/stocks/{{ r.ticker }}" class="ticker-link">{{ r.ticker }}</a>
+                </td>
+                <td>{{ r.name }}</td>
+                <td><span style="color:var(--text-muted)">{{ r.sector }}</span></td>
+                <td class="num">{{ r.price|round(0) if r.price else "—" }}</td>
+                <td class="num">
+                    {% if r.score >= 70 %}
+                    <span class="badge badge-high">{{ r.score|round(1) }}</span>
+                    {% elif r.score >= 50 %}
+                    <span class="badge badge-mid">{{ r.score|round(1) }}</span>
+                    {% else %}
+                    <span class="badge badge-low">{{ r.score|round(1) }}</span>
+                    {% endif %}
+                </td>
+                <td class="num">{{ r.return_1m_pct|round(2) }}%</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6">Belum ada saham lolos filter pada snapshot.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card">
+    <div class="card-title" style="margin-bottom:0.75rem">Distribusi Persentil Momentum ({{ results|length }} hasil)
+    </div>
+    {% set low = results | selectattr('score', 'lt', 50) | list %}
+    {% set mid = results | selectattr('score', 'ge', 50) | selectattr('score', 'lt', 70) | list %}
+    {% set high = results | selectattr('score', 'ge', 70) | list %}
+    {% set total = results|length or 1 %}
+    <div
+        style="display:flex;gap:0.35rem;height:10px;border-radius:var(--radius-pill);overflow:hidden;background:var(--surface-alt);padding:2px">
+        <div style="flex:{{ low|length }};background:var(--negative);border-radius:4px"
+            title="Persentil <50: {{ low|length }}"></div>
+        <div style="flex:{{ mid|length }};background:var(--accent);border-radius:4px"
+            title="Persentil 50–69: {{ mid|length }}"></div>
+        <div style="flex:{{ high|length }};background:var(--primary);border-radius:4px"
+            title="Persentil ≥70: {{ high|length }}"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;margin-top:0.65rem" class="small muted">
+        <span>● &lt;50: <strong style="color:var(--negative)">{{ low|length }}</strong></span>
+        <span>● 50–69: <strong style="color:var(--accent)">{{ mid|length }}</strong></span>
+        <span>● ≥70: <strong style="color:var(--primary)">{{ high|length }}</strong></span>
+    </div>
+</div>
+{% endblock %}

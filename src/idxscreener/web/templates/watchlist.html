@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% set active = "watchlist" %}
+{% block title %}Watchlist Saham — IDX Screener{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.5rem">
+    <div>
+        <h1 style="font-size:2rem;font-weight:800;letter-spacing:-0.03em;color:#FFFFFF;margin-bottom:0.25rem">Watchlist
+            Saham</h1>
+        <p class="muted">Daftar emiten pilihan yang sedang dipantau secara berkala.</p>
+    </div>
+    <a href="/screener" class="btn btn-primary btn-sm">+ Tambah dari Screener</a>
+</div>
+
+<div class="card">
+    {% if items %}
+    <table>
+        <thead>
+            <tr>
+                <th>Kode</th>
+                <th>Nama Emiten</th>
+                <th>Sektor</th>
+                <th>Tanggal Masuk</th>
+                <th style="text-align:right">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td><a href="/stocks/{{ item.ticker }}" class="ticker-link">{{ item.ticker }}</a></td>
+                <td style="font-weight:500">{{ item.name }}</td>
+                <td><span style="color:var(--text-muted)">{{ item.sector }}</span></td>
+                <td class="small muted" style="font-family:var(--font-mono)">{{ item.added_at[:10] if item.added_at else
+                    "—" }}</td>
+                <td style="text-align:right">
+                    <button class="btn btn-danger btn-sm" data-ticker="{{ item.ticker }}"
+                        onclick="removeFromWatchlist(this.dataset.ticker)" {% if demo_readonly %}disabled
+                        title="Demo publik hanya-baca" {% endif %}>Hapus
+                        ✕</button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align:center;padding:3rem 1rem">
+        <p class="muted" style="margin-bottom:1rem">Watchlist masih kosong. Belum ada saham yang disimpan ke pantauan.
+        </p>
+        <a href="/screener" class="btn btn-secondary btn-sm">Buka Screener untuk Memilih Saham →</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+    async function removeFromWatchlist(ticker) {
+        try {
+            await api("DELETE", "/api/watchlist", { ticker });
+            location.reload();
+        } catch (error) {
+            alert(`Watchlist tidak diubah: ${error.message}`);
+        }
+    }
+</script>
+{% endblock %}

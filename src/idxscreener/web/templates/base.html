@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}IDX Screener — Momentum BEI{% endblock %}</title>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+
+<body>
+    <nav class="nav">
+        <a href="/" class="nav-brand-wrap">
+            <div class="nav-logo-badge">I</div>
+            <span class="nav-brand">IDX Screener</span>
+            <span class="nav-tag">Momentum</span>
+        </a>
+        <div class="nav-links">
+            <a href="/" class="{{ 'active' if active == 'dashboard' }}">Dashboard</a>
+            <a href="/screener" class="{{ 'active' if active == 'screener' }}">Screener</a>
+            <a href="/watchlist" class="{{ 'active' if active == 'watchlist' }}">Watchlist</a>
+            <a href="/backtest" class="{{ 'active' if active == 'backtest' }}">Backtest</a>
+            <a href="/settings" class="{{ 'active' if active == 'settings' }}">Pengaturan</a>
+            <a href="/data-status" class="{{ 'active' if active == 'data-status' }}">Status Data</a>
+        </div>
+        <div class="nav-actions">
+            <button id="theme-toggle-btn" class="theme-toggle-btn" onclick="toggleTheme()"
+                title="Ganti Mode Terang / Gelap" aria-label="Toggle theme">🌙</button>
+            <a href="/screener" class="btn btn-primary btn-sm">Mulai Screener →</a>
+        </div>
+    </nav>
+    <main class="container">
+        {% set snapshot = real_summary() %}
+        {% set demo_readonly = public_demo() if public_demo is callable else public_demo|default(false) %}
+        <div class="disclaimer" role="status">
+            <span>⚠</span>
+            <div>
+                <strong>Data riil Yahoo Finance</strong> · Tanggal pasar: {{ snapshot.get('latest_data_date') or 'belum
+                tersedia' }}
+                · Status snapshot: {{ snapshot.status }}
+                · Valid / universe: {{ snapshot.get('valid_count', '—') }} / {{ snapshot.get('universe_count', '—') }}
+                · Gagal: {{ snapshot.get('failed_count', '—') }} · Lolos filter: {{ snapshot.get('eligible_count', '—')
+                }}.
+                <p>Ranking momentum, bukan CAQS. Bukan nasihat investasi.</p>
+                <p class="small muted">{{ snapshot.method }}</p>
+                {% if demo_readonly %}<p><strong>Demo publik hanya-baca: refresh, watchlist, pengaturan, dan backtest
+                        dinonaktifkan.</strong></p>{% endif %}
+            </div>
+        </div>
+        {% block content %}{% endblock %}
+    </main>
+    <script src="/static/app.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+
+</html>

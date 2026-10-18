@@ -1,0 +1,12 @@
+alerts:
+  - id: score_jump
+    category: score_change
+    scope: watchlist
+    condition: "delta(caqs, 5d) >= 8"
+    severity: medium
+    cooldown_hours: 48
+  - id: golden_cross
+    category: signal
+    scope: [watchlist, "top_n:20"]
+    condition: "crosses_above(sma20, sma50) and volume_ratio > 1.2"
+    cooldown_hours: 72

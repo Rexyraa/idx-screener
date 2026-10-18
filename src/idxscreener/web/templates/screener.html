@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+{% set active = "screener" %}
+{% block title %}Screener Momentum — IDX{% endblock %}
+{% block content %}
+<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.5rem">
+    <div>
+        <h1 style="font-size:2rem;font-weight:800;letter-spacing:-0.03em;color:#FFFFFF;margin-bottom:0.25rem">Screener
+            Universe BEI</h1>
+        <p class="muted">Ranking momentum harga riil untuk saham lolos filter tanggal, volume, dan likuiditas. Bukan
+            CAQS.</p>
+    </div>
+    <div style="display:flex;gap:0.75rem">
+        <button class="btn btn-secondary btn-sm" id="btn-export-csv">Ekspor ke CSV ⤓</button>
+        <button class="btn btn-primary btn-sm" id="btn-run-screening" onclick="startScreening()" {% if demo_readonly
+            %}disabled title="Demo publik hanya-baca" {% endif %}>Jalankan Screening
+            ⚡</button>
+    </div>
+</div>
+
+<div class="disclaimer">
+    <span>⚠</span>
+    <span><strong>Persentil Momentum (0–100):</strong> Rata-rata ranking return tersesuaikan 21 dan 60 sesi.
+        Bukan skor fundamental, CAQS, atau rekomendasi investasi.</span>
+</div>
+
+<div class="grid" style="grid-template-columns: 280px 1fr; gap: 1.5rem; align-items: start;">
+    <div>
+        <div class="card" style="position:sticky;top:5.5rem">
+            <div class="card-title" style="margin-bottom:1.25rem">Parameter Filter</div>
+
+            <div class="form-group">
+                <label for="filter-min-score" style="display:flex;justify-content:space-between">
+                    <span>Persentil Momentum Minimum</span>
+                    <strong id="min-score-val" style="color:var(--primary);font-family:var(--font-mono)">0</strong>
+                </label>
+                <input type="range" id="filter-min-score" min="0" max="100" step="5" value="0" style="width:100%">
+            </div>
+
+            <div class="form-group">
+                <label for="filter-sector">Sektor Emiten</label>
+                <select id="filter-sector">
+                    <option value="">Semua Sektor ({{ sectors|length }} Sektor)</option>
+                    {% for s in sectors %}
+                    <option value="{{ s }}">{{ s }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="filter-search">Pencarian Simbol / Nama</label>
+                <input type="text" id="filter-search" placeholder="Contoh: BBCA, Adaro…">
+            </div>
+
+            <div style="padding-top:0.5rem;border-top:1px solid var(--border)">
+                <span class="small muted">Hasil Aktif: <strong id="result-count" style="color:#FFFFFF">—</strong></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div id="run-progress" style="display:none;margin-bottom:1.25rem">
+            <div class="progress-bar">
+                <div style="width:0%"></div>
+            </div>
+            <p class="small muted" id="run-status" role="status" style="margin-top:0.4rem">running…</p>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th data-sort="ticker">Kode</th>
+                    <th data-sort="name">Nama Emiten</th>
+                    <th data-sort="sector">Sektor</th>
+                    <th data-sort="price" class="num">Harga (Rp)</th>
+                    <th data-sort="score" class="num">Persentil Momentum</th>
+                    <th>Metode</th>
+                    <th data-sort="change_1m" class="num">Δ 1 Bulan</th>
+                </tr>
+            </thead>
+            <tbody id="screener-tbody"></tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% set active = "settings" %}
+{% block title %}Pengaturan Bobot — IDX Screener{% endblock %}
+{% block content %}
+<div style="margin-bottom:1.5rem">
+  <h1 style="font-size:2rem;font-weight:800;letter-spacing:-0.03em;color:#FFFFFF;margin-bottom:0.25rem">Pengaturan Bobot
+    Faktor</h1>
+  <p class="muted">Konfigurasi CAQS lama tidak digunakan oleh ranking momentum riil. Mengubah bobot tidak mengubah
+    snapshot.</p>
+</div>
+
+<div class="disclaimer">
+  <span>💡</span>
+  <span><strong>Aturan Sistem (PRD §5.5):</strong> Pilar Foreign Flow (AC) berbobot 0 secara bawaan selama sumber
+    datanya masih berupa estimasi heuristik.</span>
+</div>
+
+<div class="card">
+  <div class="card-title" style="margin-bottom:1.5rem">Profil Bobot Model CAQS</div>
+  <div class="grid grid-2">
+    {% for key, val in weights.items() %}
+    <div class="form-group"
+      style="background:var(--surface-alt);padding:1rem;border-radius:var(--radius-sm);border:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;margin-bottom:0.5rem">
+        <span style="font-weight:600;color:#FFFFFF">{{ key|upper }} Pilar</span>
+        <strong id="val_{{ key }}" style="color:var(--primary);font-family:var(--font-mono)">{{ val|round(2) }}</strong>
+      </div>
+      <input type="range" class="weight-slider" data-key="{{ key }}" min="0" max="1" step="0.01" value="{{ val }}"
+        oninput="document.getElementById('val_{{ key }}').textContent=parseFloat(this.value).toFixed(2)"
+        style="width:100%">
+    </div>
+    {% endfor %}
+  </div>
+
+  <div
+    style="display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem;padding-top:1.25rem;border-top:1px solid var(--border);flex-wrap:wrap;gap:1rem">
+    <div style="font-size:1.05rem">
+      Total Bobot: <strong id="weight-total" style="font-family:var(--font-mono);font-size:1.2rem">1.00</strong>
+    </div>
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn btn-secondary btn-sm" id="btn-normalize">Normalisasi Otomatis</button>
+      <button class="btn btn-primary btn-sm" id="btn-save-weights" {% if demo_readonly %}disabled
+        title="Demo publik hanya-baca" {% endif %}>Simpan Perubahan 💾</button>
+    </div>
+  </div>
+</div>
+{% endblock %}

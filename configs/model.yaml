@@ -1,0 +1,27 @@
+model_version: caqs_1.0.0
+weights:
+  F: 0.2
+  Q: 0.15
+  T: 0.15
+  FM: 0.2
+  SR: 0.15
+  AC: 0.15
+w_min: 0.05
+normalization:
+  winsor: [0.01, 0.99]
+  method: percentile
+  sector_neutral: true
+  min_sector_n: 5
+stochastic:
+  horizons_d: [3, 5, 20, 60]
+  n_paths: 10000
+  se_tolerance: 0.005
+  barrier_pct: [0.08, 0.12, 0.15]
+actuarial:
+  failure_event:
+    type: drawdown
+    threshold: 0.25
+  risk_free: 0.065
+  equity_premium: 0.05
+  terminal_growth_cap: 0.03
+  horizon_years: 5

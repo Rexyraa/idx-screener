@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Saham Tidak Ditemukan — IDX Screener{% endblock %}
+{% block content %}
+<div class="card" style="text-align:center;padding:4rem 2rem;max-width:600px;margin:3rem auto">
+    <div style="font-size:3rem;font-weight:800;color:var(--negative);margin-bottom:0.5rem">404</div>
+    <h2 style="color:#FFFFFF;margin-bottom:0.5rem">Saham Tidak Ditemukan</h2>
+    <p class="muted" style="margin-bottom:2rem">Simbol <strong>{{ ticker }}</strong> tidak terdaftar dalam universe 227
+        saham aktif BEI.</p>
+    <a href="/screener" class="btn btn-primary">← Kembali ke Tabel Screener</a>
+</div>
+{% endblock %}

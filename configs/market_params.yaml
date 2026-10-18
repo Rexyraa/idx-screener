@@ -1,0 +1,23 @@
+lot_size: 100
+fees:
+  - effective_from: "2026-01-01"
+    buy: 0.0015
+    sell: 0.0025
+
+tick_size:
+  - min: 0
+    max: 200
+    tick: 1
+  - min: 200
+    max: 500
+    tick: 2
+  - min: 500
+    max: 2000
+    tick: 5
+  - min: 2000
+    max: 5000
+    tick: 10
+  - min: 5000
+    max: null
+    tick: 25
+price_limits: []

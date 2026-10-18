@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environments
+.venv/
+venv/
+
+# Generated packaging metadata
+*.egg-info/
+
+# Local runtime data
+*.db
+*.sqlite
+*.sqlite3
+
+# Private configuration and generated market snapshots
+.env
+.env.*
+!.env.example
+output/
+build/
+dist/

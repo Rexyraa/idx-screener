@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% set active = "data-status" %}
+{% block title %}Kesehatan Data — IDX Screener{% endblock %}
+{% block content %}
+<div style="margin-bottom:1.5rem">
+  <h1 style="font-size:2rem;font-weight:800;letter-spacing:-0.03em;color:#FFFFFF;margin-bottom:0.25rem">Status Sumber
+    Data</h1>
+  <p class="muted">Status snapshot harga Yahoo Finance; IDX scraper dan RTI tidak digunakan pada ranking ini.</p>
+</div>
+
+<div class="disclaimer">
+  <span>🛡️</span>
+  <span><strong>Prinsip Transparansi Data (PRD §2 &amp; §8):</strong> Kualitas data disajikan apa adanya tanpa
+    menyembunyikan kegagalan. Faktor estimasi selalu berlabel eksplisit.</span>
+</div>
+
+<div class="card">
+  <div class="card-title" style="margin-bottom:1.25rem">Daftar Sumber Data Eksternal</div>
+  <table>
+    <thead>
+      <tr>
+        <th>Sumber Data</th>
+        <th>Status Operasional</th>
+        <th>Catatan Keandalan</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for s in sources %}
+      <tr>
+        <td style="font-weight:600;color:#FFFFFF">{{ s.source }}</td>
+        <td>
+          {% if s.status == 'success' %}
+          <span class="badge badge-high">● Snapshot tersedia (lihat tanggal pasar)</span>
+          {% elif s.status == 'parsial' %}
+          <span class="badge badge-mid">● Parsial</span>
+          {% elif s.status == 'estimasi' %}
+          <span class="badge badge-estimate">● Estimasi Heuristik</span>
+          {% else %}
+          <span class="badge badge-low">● {{ s.status|replace('_', ' ')|capitalize }}</span>
+          {% endif %}
+        </td>
+        <td class="small muted">{{ s.note }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <div class="card-title" style="margin-bottom:1.25rem">Riwayat Eksekusi Job Lokal (SQLite)</div>
+  {% if sources and sources[0].jobs %}
+  <table>
+    <thead>
+      <tr>
+        <th>Nama Job</th>
+        <th>Status</th>
+        <th>Tanggal Run</th>
+        <th class="num">Durasi</th>
+        <th>Log Catatan</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for job in sources[0].jobs %}
+      <tr>
+        <td style="font-family:var(--font-mono);font-weight:600">{{ job.job_name }}</td>
+        <td><span class="badge badge-na">{{ job.status }}</span></td>
+        <td class="small muted">{{ job.run_date }}</td>
+        <td class="num">{{ job.duration_s if job.duration_s is defined and job.duration_s is not none else 'tidak
+          tersedia' }}</td>
+        <td class="small muted">{{ job.error_summary or '—' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted center" style="padding:2rem">Belum ada log eksekusi tercatat.</p>
+  {% endif %}
+</div>
+{% endblock %}
