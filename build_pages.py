@@ -51,6 +51,10 @@ async def build():
     (OUTPUT / ".nojekyll").touch()
     assert (OUTPUT / "screener/index.html").exists()
     assert 'window.STATIC_SITE=true' in (OUTPUT / "index.html").read_text(encoding="utf-8")
+    for page in OUTPUT.rglob("*.html"):
+        for url in re.findall(r'(?:href|src)="([^"?#]+)"', page.read_text(encoding="utf-8")):
+            if url.startswith(BASE + "/"):
+                assert (OUTPUT / url.removeprefix(BASE + "/")).exists(), url
     print(f"Built {len(pages)} pages, {len(snapshot['results'])} screened stocks at {OUTPUT}")
 
 
