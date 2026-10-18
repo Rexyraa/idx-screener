@@ -24,6 +24,21 @@ function toggleTheme() {
 
 // ── API helpers ──────────────────────────────────────────────────────────────
 async function api(method, url, body) {
+    if (window.STATIC_SITE) {
+        if (method !== "GET") throw new Error("Demo GitHub Pages hanya baca; jalankan aplikasi lokal untuk refresh.");
+        const params = new URL(url, location.origin).searchParams;
+        let rows = await fetch(window.SITE_BASE + "/results.json").then(r => {
+            if (!r.ok) throw new Error("Snapshot tidak tersedia");
+            return r.json();
+        });
+        rows = rows.filter(r => r.score >= Number(params.get("min_score") || 0)
+            && (!params.get("sector") || r.sector === params.get("sector"))
+            && `${r.ticker} ${r.name}`.toLowerCase().includes((params.get("search") || "").toLowerCase()));
+        const key = params.get("sort_by") || "score";
+        const direction = params.get("sort_dir") === "asc" ? 1 : -1;
+        rows.sort((a, b) => direction * (typeof a[key] === "string" ? a[key].localeCompare(b[key]) : (a[key] || 0) - (b[key] || 0)));
+        return rows;
+    }
     const opts = { method, headers: { "Content-Type": "application/json" } };
     if (body) opts.body = JSON.stringify(body);
     const r = await fetch(url, opts);
@@ -72,7 +87,7 @@ async function loadScreenerResults() {
             const colorVar = isPos ? 'var(--positive)' : 'var(--negative)';
             return `
         <tr>
-          <td><a href="/stocks/${escapeHtml(encodeURIComponent(r.ticker))}" class="ticker-link">${escapeHtml(r.ticker)}</a></td>
+          <td><a href="${window.SITE_BASE || ''}/stocks/${escapeHtml(encodeURIComponent(r.ticker))}${window.STATIC_SITE ? '/' : ''}" class="ticker-link">${escapeHtml(r.ticker)}</a></td>
           <td style="font-weight:500">${escapeHtml(r.name)}</td>
           <td><span style="color:var(--text-muted);font-size:0.8rem">${escapeHtml(r.sector)}</span></td>
           <td class="num">${Number.isFinite(r.price) ? r.price.toFixed(0) : "—"}</td>
@@ -114,6 +129,13 @@ function setupScreener() {
         _filters.search = e.target.value; loadScreenerResults();
     });
     document.getElementById("btn-export-csv")?.addEventListener("click", () => {
+        if (window.STATIC_SITE) {
+            const link = document.createElement("a");
+            link.href = window.SITE_BASE + "/screening.csv";
+            link.download = "screening.csv";
+            link.click();
+            return;
+        }
         const params = new URLSearchParams({ sort_by: _sortBy, sort_dir: _sortDir });
         if (_filters.min_score) params.set("min_score", _filters.min_score);
         if (_filters.sector) params.set("sector", _filters.sector);

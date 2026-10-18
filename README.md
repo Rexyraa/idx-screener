@@ -45,7 +45,19 @@ One worker/instance is supported; refresh progress is in memory and is lost on r
 `node --check src/idxscreener/web/static/app.js` validates browser JavaScript syntax.
 Network access is needed only for a real refresh, not for the tests.
 
-## Railway
+## GitHub Pages (free static demo)
+
+The `Deploy GitHub Pages` workflow downloads real Yahoo prices and renders the
+existing read-only UI as HTML/JSON. Enable **Settings → Pages → GitHub Actions**.
+The target URL is https://rexyraa.github.io/idx-screener/ .
+Filtering, sorting, charts, theme switching, and snapshot CSV download run in the
+browser. CSV exports the complete snapshot. Refresh, persistent watchlists, and
+Python APIs require the local app; Pages cannot run FastAPI.
+Data updates on pushes or manually via Actions, not on visitor requests.
+Failed downloads fail the build and leave the previous deployment intact.
+`uv run python build_pages.py` builds locally into the ignored `dist/` directory.
+
+## Railway (optional Python hosting)
 
 Deploy this repository using the included Dockerfile and `railway.json`.
 Create a persistent volume mounted at `/data`; set `DATA_DIR=/data` and
